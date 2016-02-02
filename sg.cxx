@@ -2,6 +2,7 @@
 #include <fstream>
 #include <complex>
 #include <sstream>
+#include <cmath>
 //-----------------------------------
 using namespace std;
 //-----------------------------------
@@ -24,8 +25,8 @@ int main(){
   	const double xmax = 40.0;
 	const double Tend = 10.0*M_PI;
 	
-	const double dx = (xmax-xmin)/Nx;
-	const double dt =  dx/500.0 ;
+	const double dx = (xmax-xmin)/(Nx-1.0);
+	const double dt =  dx/1000.0 ;
  	double t = 0.0;
 
 	const int Na = 10;
@@ -58,9 +59,8 @@ int main(){
 	delete[] psi0;
 	return 0;
 }
-//-----------------------------------
+//--------------------------------------------------------------
 
-//-----------------------------------
 void linstep(cmplx* const psi0, const double dx, const int N, const double omega, const double dt, const double xmin){
 	double x = xmin;		
 	double k = omega*omega;
@@ -80,6 +80,8 @@ void linstep(cmplx* const psi0, const double dx, const int N, const double omega
 		l[i] = a;
 	}
 
+//---------------------------------------------------------------
+//Matrix multiplikation mit komplex konjugierter Matrix A*
 	psi0[0] = d1[0]*psi0[0] + a1*psi0[1];
 	temp1 = psi0[0];
 	for(int i=1; i<N-1; i++){
@@ -88,26 +90,28 @@ void linstep(cmplx* const psi0, const double dx, const int N, const double omega
 		temp1 = temp2;
 	}
 	psi0[N-1] = a1*temp1 + d1[N-1]*psi0[N-1];
+
 //---------------------------------------------------------------
 //Gauss
-	for(int i=1;i<N;i++){
-		
+	for(int i=1;i<N;i++){	
 	    d[i] = d[i] - u[i-1]*l[i]/d[i-1];
 	    psi0[i] = psi0[i] - psi0[i-1]*l[i]/d[i-1];
 	    l[i] = 0;
 	}
+
 	    psi0[N-1] = psi0[N-1]/d[N-1];
 	for(int i=N-2; i>=0; i--){
 	    psi0[i] = (psi0[i] - u[i]*psi0[i+1])/d[i];
 	}
 	
+
   delete[] d;
   delete[] d1;
   delete[] u;
   delete[] l;
-
-
 }
+//--------------------------------------------------------------
+
 void writeToFile(const cmplx* const v, const string s, const double dx,
                  const int Nx, const double xmin, const double alpha,
                  const double lambda, const double omega, const double t)
@@ -130,7 +134,7 @@ void writeToFile(const cmplx* const v, const string s, const double dx,
 	}
 	out.close();
 }
-//-----------------------------------
+//------------------------------------------------------------
 
 void init( cmplx* const psi0, const double alpha, const double lambda,
            const double dx, const double dt,
